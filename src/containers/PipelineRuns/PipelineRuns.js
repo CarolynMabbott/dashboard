@@ -14,6 +14,7 @@ limitations under the License.
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { injectIntl } from 'react-intl';
 import {
   Button,
   InlineNotification,
@@ -24,8 +25,11 @@ import {
   StructuredListSkeleton,
   StructuredListWrapper
 } from 'carbon-components-react';
-import { CreatePipelineRun } from '..';
+
+import { urls } from '@tektoncd/dashboard-utils';
 import Add from '@carbon/icons-react/lib/add/16';
+
+import { CreatePipelineRun } from '..';
 import './PipelineRuns.scss';
 
 import { ALL_NAMESPACES } from '../../constants';
@@ -34,8 +38,7 @@ import {
   getStatus,
   getStatusIcon,
   isRunning,
-  sortRunsByStartTime,
-  urls
+  sortRunsByStartTime
 } from '../../utils';
 import { fetchPipelineRuns } from '../../actions/pipelineRuns';
 
@@ -120,7 +123,8 @@ export /* istanbul ignore next */ class PipelineRuns extends Component {
       error,
       loading,
       namespace: selectedNamespace,
-      pipelineRuns
+      pipelineRuns,
+      intl
     } = this.props;
     const { pipelineName } = match.params;
 
@@ -134,7 +138,9 @@ export /* istanbul ignore next */ class PipelineRuns extends Component {
           kind="error"
           hideCloseButton
           lowContrast
-          title="Error loading PipelineRuns"
+          title={intl.formatMessage({
+            id: 'dashboard.pipelineRuns.error'
+          })}
           subtitle={getErrorMessage(error)}
         />
       );
@@ -181,8 +187,16 @@ export /* istanbul ignore next */ class PipelineRuns extends Component {
               {selectedNamespace === ALL_NAMESPACES && (
                 <StructuredListCell head>Namespace</StructuredListCell>
               )}
-              <StructuredListCell head>Status</StructuredListCell>
-              <StructuredListCell head>Last Transition Time</StructuredListCell>
+              <StructuredListCell head>
+                {intl.formatMessage({
+                  id: 'dashboard.pipelineRuns.status'
+                })}
+              </StructuredListCell>
+              <StructuredListCell head>
+                {intl.formatMessage({
+                  id: 'dashboard.pipelineRuns.transitionTime'
+                })}
+              </StructuredListCell>
               <StructuredListCell head />
             </StructuredListRow>
           </StructuredListHead>
@@ -296,4 +310,4 @@ const mapDispatchToProps = {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(PipelineRuns);
+)(injectIntl(PipelineRuns));

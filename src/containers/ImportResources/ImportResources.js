@@ -21,11 +21,11 @@ import {
 } from 'carbon-components-react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { urls } from '@tektoncd/dashboard-utils';
 
 import { ALL_NAMESPACES } from '../../constants';
 import { createPipelineRun, getInstallProperties } from '../../api';
 import { getSelectedNamespace } from '../../reducers';
-import { urls } from '../../utils';
 import { NamespacesDropdown, ServiceAccountsDropdown } from '..';
 
 import './ImportResources.scss';
@@ -169,7 +169,7 @@ export class ImportResources extends Component {
           />
           <NamespacesDropdown
             id="import-namespaces-dropdown"
-            helperText="The namespace that the PipelineRun applying resources will run under"
+            helperText="The namespace in which the resources will be created"
             invalid={this.state.invalidNamespace}
             invalidText="Please select a namespace"
             onChange={this.handleNamespace}

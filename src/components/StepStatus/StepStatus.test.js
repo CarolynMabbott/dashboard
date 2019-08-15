@@ -12,18 +12,18 @@ limitations under the License.
 */
 
 import React from 'react';
-import { render } from 'react-testing-library';
 import StepStatus from './StepStatus';
+import { renderWithIntl } from '../../utils/test';
 
 it('StepStatus renders default content', () => {
-  const { queryByText } = render(<StepStatus />);
+  const { queryByText } = renderWithIntl(<StepStatus />);
 
   expect(queryByText(/Container status:/i)).toBeTruthy();
   expect(queryByText(/No status available/i)).toBeTruthy();
 });
 
 it('StepStatus renders the provided content', () => {
-  const { queryByText } = render(<StepStatus status="testing" />);
+  const { queryByText } = renderWithIntl(<StepStatus status="testing" />);
 
   expect(queryByText(/testing/i)).toBeTruthy();
 });

@@ -19,6 +19,8 @@ import Annotations from '../../components/SecretsModal/Annotations';
 import BasicAuthFields from '../../components/SecretsModal/BasicAuthFields';
 import '../../components/SecretsModal/SecretsModal.scss';
 import { createSecret } from '../../actions/secrets';
+import { getServiceAccounts } from '../../reducers';
+import { fetchServiceAccounts } from '../../actions/serviceAccounts';
 
 /* istanbul ignore next */
 function validateInputs(value, id) {
@@ -27,7 +29,6 @@ function validateInputs(value, id) {
   if (trimmed === '') {
     return false;
   }
-
   if (id === 'name' || id === 'serviceAccount') {
     if (trimmed.length > 253) {
       return false;
@@ -55,6 +56,7 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
         {
           label: `tekton.dev/git-0`,
           value: '',
+          placeholder: 'https://github.com',
           id: Math.random()
             .toString(36)
             .substr(2, 9)
@@ -62,6 +64,10 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
       ],
       invalidFields: []
     };
+  }
+
+  componentDidMount() {
+    this.props.fetchServiceAccounts();
   }
 
   handleSubmit = () => {
@@ -149,7 +155,7 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
 
   handleChangeServiceAccount = e => {
     const stateVar = 'serviceAccount';
-    const stateValue = e.selectedItem.text;
+    const stateValue = e.target.value;
     this.setState(prevState => {
       const newInvalidFields = prevState.invalidFields;
       const idIndex = newInvalidFields.indexOf(stateVar);
@@ -196,15 +202,19 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
       }
       const annotations = prevState.annotations.map(annotation => {
         let toSearch;
+        let toExampleText;
         if (stateValue === 'git') {
           toSearch = 'docker';
+          toExampleText = 'https://github.com';
         } else {
           toSearch = 'git';
+          toExampleText = 'https://index.docker.io/v1/';
         }
         return {
           label: annotation.label.split(toSearch).join(stateValue),
           value: annotation.value,
-          id: annotation.id
+          id: annotation.id,
+          placeholder: toExampleText
         };
       });
       return {
@@ -250,9 +260,16 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
   handleAdd = () => {
     this.setState(prevState => {
       const { annotations, accessTo } = prevState;
+      let example;
+      if (accessTo === 'git') {
+        example = 'https://github.com';
+      } else {
+        example = 'https://index.docker.io/v1/';
+      }
       annotations.push({
         label: `tekton.dev/${accessTo}-${annotations.length}`,
         value: '',
+        placeholder: example,
         id: Math.random()
           .toString(36)
           .substr(2, 9)
@@ -272,7 +289,7 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
   };
 
   render() {
-    const { open, handleNew } = this.props;
+    const { open, handleNew, serviceAccounts } = this.props;
     const {
       name,
       namespace,
@@ -309,6 +326,7 @@ export /* istanbul ignore next */ class SecretsModal extends Component {
             username={username}
             password={password}
             serviceAccount={serviceAccount}
+            serviceAccounts={serviceAccounts}
             namespace={namespace}
             handleChangeTextInput={this.handleChangeTextInput}
             handleChangeServiceAccount={this.handleChangeServiceAccount}
@@ -331,12 +349,15 @@ SecretsModal.defaultProps = {
   open: false
 };
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps(state) {
+  return {
+    serviceAccounts: getServiceAccounts(state)
+  };
 }
 
 const mapDispatchToProps = {
-  createSecret
+  createSecret,
+  fetchServiceAccounts
 };
 
 export default connect(

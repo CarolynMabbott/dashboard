@@ -9,6 +9,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.mjs$/,
+        type: 'javascript/auto'
+      },
+      {
         test: /\.js$/,
         include: path.resolve(__dirname, 'src'),
         use: [
@@ -35,5 +39,10 @@ module.exports = {
         viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no'
       }
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      'react-router-dom': path.resolve('./node_modules/react-router-dom')
+    }
+  }
 };
