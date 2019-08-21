@@ -229,30 +229,77 @@ func (r Resource) createPipelineRunImpl(pipelineRunData ManualPipelineRun, names
 	releaseName := fmt.Sprintf("%s-%s", strings.ToLower(repoName), pipelineRunData.GITCOMMIT)
 	repositoryName := strings.ToLower(repoName)
 
+	fooImageTag := v1alpha1.ArrayOrString{
+		Type:      v1alpha1.ParamTypeString,
+		StringVal: imageTag,
+		ArrayVal:  nil,
+	}
+
+	fooImageName := v1alpha1.ArrayOrString{
+		Type:      v1alpha1.ParamTypeString,
+		StringVal: imageName,
+		ArrayVal:  nil,
+	}
+
+	fooReleaseName := v1alpha1.ArrayOrString{
+		Type:      v1alpha1.ParamTypeString,
+		StringVal: releaseName,
+		ArrayVal:  nil,
+	}
+
+	fooRepositoryName := v1alpha1.ArrayOrString{
+		Type:      v1alpha1.ParamTypeString,
+		StringVal: repositoryName,
+		ArrayVal:  nil,
+	}
+
+	fooNamespace := v1alpha1.ArrayOrString{
+		Type:      v1alpha1.ParamTypeString,
+		StringVal: namespace,
+		ArrayVal:  nil,
+	}
+
 	var params []v1alpha1.Param
 	if pipelineRunData.PIPELINERUNTYPE == "helm" {
 		params = []v1alpha1.Param{
-			{Name: "image-tag", Value: imageTag},
-			{Name: "image-name", Value: imageName},
-			{Name: "release-name", Value: releaseName},
-			{Name: "repository-name", Value: repositoryName},
-			{Name: "target-namespace", Value: namespace}}
+			{Name: "image-tag", Value: fooImageTag},
+			{Name: "image-name", Value: fooImageName},
+			{Name: "release-name", Value: fooReleaseName},
+			{Name: "repository-name", Value: fooRepositoryName},
+			{Name: "target-namespace", Value: fooNamespace}}
 	} else {
-		params = []v1alpha1.Param{{Name: "target-namespace", Value: namespace}}
+		params = []v1alpha1.Param{{Name: "target-namespace", Value: fooNamespace}}
 	}
 
 	if pipelineRunData.HELMSECRET != "" {
-		params = append(params, v1alpha1.Param{Name: "helm-secret", Value: pipelineRunData.HELMSECRET})
+		fooHelmSecret := v1alpha1.ArrayOrString{
+			Type:      v1alpha1.ParamTypeString,
+			StringVal: pipelineRunData.HELMSECRET,
+			ArrayVal:  nil,
+		}
+
+		params = append(params, v1alpha1.Param{Name: "helm-secret", Value: fooHelmSecret})
 	}
+
 	if pipelineName == "pipeline0" {
 		if pipelineRunData.APPLYDIRECTORY != "" {
-			params = append(params, v1alpha1.Param{Name: "apply-directory", Value: pipelineRunData.APPLYDIRECTORY})
+			fooApplyDir := v1alpha1.ArrayOrString{
+				Type:      v1alpha1.ParamTypeString,
+				StringVal: pipelineRunData.APPLYDIRECTORY,
+				ArrayVal:  nil,
+			}
+			params = append(params, v1alpha1.Param{Name: "apply-directory", Value: fooApplyDir})
 		}
-		params = append(params, v1alpha1.Param{Name: "target-namespace", Value: targetNamespaceForPipeline0})
+		fooTargetNs := v1alpha1.ArrayOrString{
+			Type:      v1alpha1.ParamTypeString,
+			StringVal: targetNamespaceForPipeline0,
+			ArrayVal:  nil,
+		}
+		params = append(params, v1alpha1.Param{Name: "target-namespace", Value: fooTargetNs})
 	}
 
 	// PipelineRun yaml defines references to resources
-	newPipelineRunData, err := definePipelineRun(generatedPipelineRunName, namespace, serviceAccount, pipelineRunData.REPOURL, pipeline, v1alpha1.PipelineTriggerTypeManual, resources, params)
+	newPipelineRunData, err := definePipelineRun(generatedPipelineRunName, namespace, serviceAccount, pipelineRunData.REPOURL, pipeline, resources, params)
 	if err != nil {
 		errorMsg := fmt.Sprintf("there was a problem defining the pipeline run: %s", err)
 		logging.Log.Error(errorMsg)
@@ -341,7 +388,7 @@ func makeTaskRunLog(r Resource, namespace string, pod *v1.Pod) TaskRunLog {
 }
 
 /* Create a new PipelineResource: this should be of type git or image */
-func definePipelineResource(name, namespace string, params []v1alpha1.Param, resourceType v1alpha1.PipelineResourceType) *v1alpha1.PipelineResource {
+func definePipelineResource(name, namespace string, params []v1alpha1.ResourceParam, resourceType v1alpha1.PipelineResourceType) *v1alpha1.PipelineResource {
 	pipelineResource := v1alpha1.PipelineResource{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace},
 		Spec: v1alpha1.PipelineResourceSpec{
@@ -357,7 +404,6 @@ func definePipelineResource(name, namespace string, params []v1alpha1.Param, res
 each PipelineRun has a 1 hour timeout: */
 func definePipelineRun(pipelineRunName, namespace, saName, repoUrl string,
 	pipeline v1alpha1.Pipeline,
-	triggerType v1alpha1.PipelineTriggerType,
 	resourceBinding []v1alpha1.PipelineResourceBinding,
 	params []v1alpha1.Param) (*v1alpha1.PipelineRun, error) {
 
@@ -384,9 +430,7 @@ func definePipelineRun(pipelineRunName, namespace, saName, repoUrl string,
 		},
 
 		Spec: v1alpha1.PipelineRunSpec{
-			PipelineRef: v1alpha1.PipelineRef{Name: pipeline.Name},
-			// E.g. v1alpha1.PipelineTriggerTypeManual
-			Trigger:        v1alpha1.PipelineTrigger{Type: triggerType},
+			PipelineRef:    v1alpha1.PipelineRef{Name: pipeline.Name},
 			ServiceAccount: saName,
 			Timeout:        &metav1.Duration{Duration: 1 * time.Hour},
 			Resources:      resourceBinding,
@@ -411,13 +455,13 @@ func (r Resource) createPipelineResourceForPipelineRun(resourceData ManualPipeli
 		resourceName = resourceName[:CRDNameLengthLimit-1]
 	}
 
-	var paramsForResource []v1alpha1.Param
+	var paramsForResource []v1alpha1.ResourceParam
 	// Unique names are required so timestamp them.
 	if resourceType == v1alpha1.PipelineResourceTypeGit {
-		paramsForResource = []v1alpha1.Param{{Name: "revision", Value: resourceData.GITCOMMIT}, {Name: "url", Value: resourceData.REPOURL}}
+		paramsForResource = []v1alpha1.ResourceParam{{Name: "revision", Value: resourceData.GITCOMMIT}, {Name: "url", Value: resourceData.REPOURL}}
 	} else if resourceType == v1alpha1.PipelineResourceTypeImage {
 		urlToUse := fmt.Sprintf("%s/%s:%s", registryURL, strings.ToLower(resourceData.REPONAME), resourceData.GITCOMMIT)
-		paramsForResource = []v1alpha1.Param{{Name: "url", Value: urlToUse}}
+		paramsForResource = []v1alpha1.ResourceParam{{Name: "url", Value: urlToUse}}
 	}
 
 	pipelineResource := definePipelineResource(resourceName, namespace, paramsForResource, resourceType)
@@ -558,11 +602,6 @@ func (r Resource) rebuildRun(name, namespace string) (*v1alpha1.PipelineRun, err
 	newPipelineRunData := pipelineRun
 	newPipelineRunData.Name = generateNewNameForRebuild(name)
 	newPipelineRunData.ResourceVersion = ""
-
-	// It's mandatory, so if it's not set already choose manual
-	if newPipelineRunData.Spec.Trigger.Type == "" {
-		newPipelineRunData.Spec.Trigger.Type = v1alpha1.PipelineTriggerTypeManual
-	}
 
 	currentLabels := pipelineRun.GetLabels()
 
