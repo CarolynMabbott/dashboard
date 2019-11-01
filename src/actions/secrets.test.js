@@ -15,6 +15,7 @@ import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 
 import * as API from '../api';
+import * as COMMS from '../api/comms';
 import * as selectors from '../reducers';
 import {
   clearNotification,
@@ -87,6 +88,27 @@ const defaultServiceAccount = {
   ]
 };
 
+const testServiceAccount1 = {
+  apiVersion: 'v1',
+  kind: 'ServiceAccount',
+  metadata: {
+    creationTimestamp: '2019-08-28T12:46:08Z',
+    name: 'serviceAccount1',
+    namespace: 'default',
+    resourceVersion: '331',
+    selfLink: '/api/v1/namespaces/default/serviceaccounts/default',
+    uid: 'ced1c79d-c991-11e9-a380-025000000001'
+  },
+  secrets: [
+    {
+      name: 'secret-name'
+    },
+    {
+      name: 'keep-me'
+    }
+  ]
+};
+
 const response = { ok: true, status: 204 };
 const namespace = 'default';
 
@@ -148,7 +170,15 @@ it('deleteSecret', async () => {
     .spyOn(selectors, 'getSelectedNamespace')
     .mockImplementation(() => namespace);
 
+  jest.spyOn(API, 'getServiceAccounts').mockImplementation(() => [testServiceAccount1])
   jest.spyOn(API, 'deleteCredential').mockImplementation(() => {});
+
+  jest.spyOn(COMMS, 'patchUpdateSecrets').mockImplementation(uri, b => {
+    console.log("FOO " + a + " " + JSON.stringify(b));
+    expect("foo").toEqual("wibble")
+    //expect(b).toEqual('[{"op":"replace","path":"serviceaccount/secrets","value":[{"name":"keep-me"}]}]')
+    return Promise.resolve({});
+  });
 
   const expectedActions = [
     { type: 'SECRET_DELETE_REQUEST' },

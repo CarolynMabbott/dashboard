@@ -16,7 +16,7 @@ import {
   deleteRequest,
   get,
   patchAddSecret,
-  patchUpdateSecrets,
+  //patchUpdateSecrets,
   post,
   put
 } from './comms';
@@ -326,6 +326,7 @@ export async function updateServiceAccountSecrets(
     name: sa.metadata.name,
     namespace
   });
+  console.log("LLLL " + uri)
   return patchUpdateSecrets(uri, secretsToKeep);
 }
 

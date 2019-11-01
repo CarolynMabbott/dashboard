@@ -12,47 +12,37 @@ limitations under the License.
 */
 
 import fetchMock from 'fetch-mock';
-
-import {
-  checkStatus,
-  generateBodyForSecretPatching,
-  get,
-  getHeaders,
-  getPatchHeaders,
-  patchAddSecret,
-  post,
-  request
-} from './comms';
+import * as comms from './comms';
 
 const uri = 'http://example.com';
 
 describe('getHeaders', () => {
   it('returns default headers when called with no params', () => {
-    expect(getHeaders()).not.toBeNull();
+    expect(comms.getHeaders()).not.toBeNull();
   });
 
   it('combines custom headers with the default', () => {
     const customHeaders = {
       'X-Foo': 'Bar'
     };
-    const result = getHeaders(customHeaders);
+    const result = comms.getHeaders(customHeaders);
     expect(result).toMatchObject(customHeaders);
-    expect(result).toMatchObject(getHeaders());
+    expect(result).toMatchObject(comms.getHeaders());
   });
 });
 
 describe('getPatchHeaders', () => {
   it('returns default headers when called with no params', () => {
-    expect(getPatchHeaders()).not.toBeNull();
+    expect(comms.getPatchHeaders()).not.toBeNull();
   });
 
   it('combines custom headers with the default', () => {
     const customHeaders = {
       'X-Foo': 'Bar'
     };
-    const result = getPatchHeaders(customHeaders);
+    const result = comms.getPatchHeaders(customHeaders);
     expect(result).toMatchObject(customHeaders);
-    expect(result).toMatchObject(getPatchHeaders());
+    expect(result).toMatchObject(comms.getPatchHeaders());
   });
 });
 
@@ -61,7 +51,7 @@ describe('checkStatus', () => {
     const data = 'fake data';
     const json = jest.fn(() => data);
     expect(
-      checkStatus({
+      comms.checkStatus({
         ok: true,
         headers: { get: () => 'application/json' },
         json
@@ -73,7 +63,7 @@ describe('checkStatus', () => {
     const data = 'fake data';
     const text = jest.fn(() => data);
     expect(
-      checkStatus({
+      comms.checkStatus({
         ok: true,
         headers: { get: () => 'text/plain' },
         text
@@ -84,16 +74,16 @@ describe('checkStatus', () => {
   it('returns headers on successful create', () => {
     const status = 201;
     const headers = { fake: 'headers' };
-    expect(checkStatus({ ok: true, headers, status })).toEqual(headers);
+    expect(comms.checkStatus({ ok: true, headers, status })).toEqual(headers);
   });
 
   it('throws an error on failure', () => {
     const status = 400;
-    expect(() => checkStatus({ status })).toThrow();
+    expect(() => comms.checkStatus({ status })).toThrow();
   });
 
   it('throws an error on empty response', () => {
-    expect(() => checkStatus()).toThrow();
+    expect(() => comms.checkStatus()).toThrow();
   });
 });
 
@@ -104,7 +94,7 @@ describe('request', () => {
     };
 
     fetchMock.mock(uri, data);
-    return request(uri).then(response => {
+    return comms.request(uri).then(response => {
       expect(response).toEqual(data);
       fetchMock.restore();
     });
@@ -113,7 +103,7 @@ describe('request', () => {
   it('throws on error', () => {
     fetchMock.mock(uri, 400);
     expect.assertions(1);
-    return request(uri).catch(e => {
+    return comms.request(uri).catch(e => {
       expect(e).not.toBeNull();
       fetchMock.restore();
     });
@@ -126,7 +116,7 @@ describe('get', () => {
       fake: 'data'
     };
     fetchMock.get(uri, data);
-    return get(uri).then(response => {
+    return comms.get(uri).then(response => {
       expect(response).toEqual(data);
       fetchMock.restore();
     });
@@ -139,7 +129,7 @@ describe('post', () => {
       fake: 'data'
     };
     fetchMock.post(uri, data);
-    return post(uri, data).then(() => {
+    return comms.post(uri, data).then(() => {
       const options = fetchMock.lastOptions();
       expect(options.body).toEqual(JSON.stringify(data));
       fetchMock.restore();
@@ -159,9 +149,9 @@ describe('generateBodyForSecretPatching', () => {
         }
       }
     ];
-    const result = generateBodyForSecretPatching(secretName);
+    const result = comms.generateBodyForSecretPatching(secretName);
     expect(result).toMatchObject(secretResponse);
-    expect(result).toMatchObject(generateBodyForSecretPatching(secretName));
+    expect(result).toMatchObject(comms.generateBodyForSecretPatching(secretName));
   });
 });
 
@@ -171,9 +161,49 @@ describe('patchAddSecret', () => {
       fake: 'data'
     };
     fetchMock.mock(uri, data);
-    return patchAddSecret(uri, data).then(response => {
+    return comms.patchAddSecret(uri, data).then(response => {
       expect(response).toEqual(data);
       fetchMock.restore();
     });
+  });
+});
+
+describe('generateBodyForSecretReplacing', () => {
+  it('should return correct data when sent an empty remainingSecrets', () => {
+    const data = {
+    };
+    const dataExpected = [{
+      op: 'replace',
+      path: 'serviceaccount/secrets',
+      value: data
+    }];
+    fetchMock.mock(uri, data);
+    const response = comms.generateBodyForSecretReplacing(data);
+      expect(response).toEqual(dataExpected);
+      fetchMock.restore();
+  });
+
+  it('should return correct data when sent one remainingSecrets', () => {
+    const data = {
+      name: "groot"
+    };
+    const dataExpected = [{
+      op: 'replace',
+      path: 'serviceaccount/secrets',
+      value: data
+    }];
+    fetchMock.mock(uri, data);
+    const response = comms.generateBodyForSecretReplacing(data);
+      expect(response).toEqual(dataExpected);
+      fetchMock.restore();
+  });
+
+  it('should return correct data when sent multiple remainingSecrets', () => {
+    const data = [{"name":"groot"},{"name":"meow"}]
+    const dataExpected = [{"op":"replace","path":"serviceaccount/secrets","value":data}];
+    fetchMock.mock(uri, data);
+    const response = comms.generateBodyForSecretReplacing(data);
+      expect(response).toEqual(dataExpected);
+      fetchMock.restore();
   });
 });

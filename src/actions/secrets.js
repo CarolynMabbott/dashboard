@@ -57,11 +57,13 @@ export function fetchSecrets({ namespace } = {}) {
 
 export function deleteSecret(secrets) {
   return async dispatch => {
+    console.log("deleteSecrets ");
     dispatch({ type: 'SECRET_DELETE_REQUEST' });
     // This is where we first handle the unpatching (complicated section), and would benefit
     // from error handling and additional notifications on success/error
     const namespacesToSecretsMap = new Map();
     secrets.forEach(secret => {
+      console.log("deleteSecrets " + secret.name);
       let foundSecretInfo = namespacesToSecretsMap.get(secret.namespace);
       if (foundSecretInfo) {
         foundSecretInfo.push(secret.name);
@@ -71,6 +73,7 @@ export function deleteSecret(secrets) {
       namespacesToSecretsMap.set(secret.namespace, foundSecretInfo);
     });
 
+    console.log("map " + namespacesToSecretsMap.get("default"));
     /* Now we know the secrets for each namespace, iterate and determine which secrets 
     should be removed from the SA. With the list of known secrets that stay, 
     we finally do a replace type PATCH on the entire service account at once. 
@@ -83,7 +86,7 @@ export function deleteSecret(secrets) {
       const serviceAccounts = await getServiceAccounts({
         namespace
       });
-
+      console.log("deleteSecrets serviceAccounts " + serviceAccounts);
       // For each service account found
       serviceAccounts.forEach(async serviceAccount => {
         let secretRemoved = false;
@@ -92,6 +95,7 @@ export function deleteSecret(secrets) {
         // For each secret found
         for (let x = 0; x < allSecrets.length; x += 1) {
           const secret = allSecrets[x].name;
+          console.log("secret check " + secret)
           let found = false;
           let z = 0;
           // For each secret we want to delete

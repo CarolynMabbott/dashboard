@@ -644,3 +644,33 @@ it('getResource', () => {
       fetchMock.restore();
     });
 });
+
+describe('updateServiceAccountSecrets', () => {
+  it('should return patchUpdateSecrets with correct data', async () => {
+    const sa = {
+      metadata: {
+        name: 'tekton-dashboard',
+        namespace: 'tekton-pipelines',
+        labels: { app: 'tekton-dashboard' },
+      },
+      secrets: [{ name: 'tekton-dashboard-token-lmqc4' }, { name: 'groot' }]
+    };
+    const uri = 'http://example.com';
+    const requestData = { fake: 'data' };
+    fetchMock.mock(uri, requestData);
+    fetchMock.mock(comms.patchUpdateSecrets, requestData);
+    const secretsToKeep = [{ name: 'tekton-dashboard-token-lmqc4' }];
+
+    comms.patchUpdateSecrets(uri, secretsToKeep).then(response => {
+      expect(response).toEqual(requestData);
+      fetchMock.restore();
+    });
+
+    const result = await index.updateServiceAccountSecrets(
+      sa,
+      'tekton-pipelines',
+      secretsToKeep
+    );
+    expect(result).toMatchObject(requestData);
+  });
+});

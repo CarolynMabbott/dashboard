@@ -103,27 +103,6 @@ export function generateBodyForSecretPatching(secretName) {
   return patchAddBody;
 }
 
-export function generateBodyForSecretReplacing(remainingSecrets) {
-  const replaceBody = [
-    {
-      op: 'replace',
-      path: 'serviceaccount/secrets',
-      value: remainingSecrets
-    }
-  ];
-  return replaceBody;
-}
-
-export function patchRemoveSecretBody(indexOfSecret) {
-  const patchRemoveBody = [
-    {
-      op: 'remove',
-      path: `serviceaccount/secrets/${indexOfSecret}`
-    }
-  ];
-  return patchRemoveBody;
-}
-
 export async function patchAddSecret(uri, secretName) {
   const patchAddBody = await generateBodyForSecretPatching(secretName);
   return request(uri, {
@@ -133,20 +112,27 @@ export async function patchAddSecret(uri, secretName) {
   });
 }
 
-export async function patchRemoveSecret(uri, indexOfSecret) {
-  const patchRemoveBody = await patchRemoveSecretBody(indexOfSecret);
-  return request(uri, {
-    method: 'PATCH',
-    headers: await getPatchHeaders(),
-    body: JSON.stringify(patchRemoveBody)
-  });
-}
 
 export async function patchUpdateSecrets(uri, secrets) {
   const patchReplaceBody = await generateBodyForSecretReplacing(secrets);
-  return request(uri, {
+  console.log("patchUpdateSecrets " + JSON.stringify(patchReplaceBody));
+  const t = await request(uri, {
     method: 'PATCH',
     headers: await getPatchHeaders(),
     body: JSON.stringify(patchReplaceBody)
   });
+  console.log(t);
+  return t;
+}
+
+export function generateBodyForSecretReplacing(remainingSecrets) {
+  console.log("DUANE");
+  const replaceBody = [
+    {
+      op: 'replace',
+      path: 'serviceaccount/secrets',
+      value: remainingSecrets
+    }
+  ];
+  return replaceBody;
 }
