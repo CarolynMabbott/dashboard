@@ -49,6 +49,10 @@ it('importResources', () => {
   expect(urls.importResources()).toEqual(generatePath(paths.importResources()));
 });
 
+it('about', () => {
+  expect(urls.about()).toEqual(generatePath(paths.about()));
+});
+
 describe('byNamespace', () => {
   it('default', () => {
     expect(urls.byNamespace({ namespace })).toEqual(

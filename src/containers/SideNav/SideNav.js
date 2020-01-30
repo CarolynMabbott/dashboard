@@ -212,6 +212,9 @@ class SideNav extends Component {
           >
             &nbsp;
           </SideNavMenuItem>
+          <SideNavLink element={NavLink} icon={<span />} to={urls.about()}>
+            About
+          </SideNavLink>
           <SideNavLink
             element={NavLink}
             icon={<span />}

@@ -24,6 +24,7 @@ import {
 import { IntlProvider } from 'react-intl';
 import { Content } from 'carbon-components-react';
 import {
+  Breadcrumbs,
   Header,
   LogoutButton,
   PageErrorBoundary
@@ -31,6 +32,7 @@ import {
 import { paths, urls } from '@tektoncd/dashboard-utils';
 
 import {
+  About,
   ClusterTasks,
   CustomResourceDefinition,
   EventListener,
@@ -45,7 +47,6 @@ import {
   Pipelines,
   ResourceList,
   Secrets,
-  ServiceAccount,
   ServiceAccounts,
   SideNav,
   TaskRun,
@@ -104,7 +105,9 @@ export /* istanbul ignore next */ class App extends Component {
       <IntlProvider locale={lang} defaultLocale="en" messages={messages[lang]}>
         <Router>
           <>
-            <Header logoutButton={logoutButton} />
+            <Header logoutButton={logoutButton}>
+              <Route path="*" component={Breadcrumbs} />
+            </Header>
             <Route path={paths.byNamespace({ path: '/*' })}>
               {props => <SideNav {...props} />}
             </Route>
@@ -183,23 +186,14 @@ export /* istanbul ignore next */ class App extends Component {
                     component={ClusterTasks}
                   />
 
+                  <Route path={paths.about()} component={About} />
                   <Route
                     path={paths.importResources()}
                     component={ImportResources}
                   />
                   <Route path={paths.secrets.all()} exact component={Secrets} />
                   <Route
-                    path={paths.serviceAccounts.byName()}
-                    exact
-                    component={ServiceAccount}
-                  />
-                  <Route
                     path={paths.serviceAccounts.all()}
-                    exact
-                    component={ServiceAccounts}
-                  />
-                  <Route
-                    path={paths.serviceAccounts.byNamespace()}
                     exact
                     component={ServiceAccounts}
                   />
@@ -208,16 +202,13 @@ export /* istanbul ignore next */ class App extends Component {
                     exact
                     component={EventListeners}
                   />
-                  <Route
-                    path={paths.eventListeners.byNamespace()}
-                    exact
-                    component={EventListeners}
-                  />
+
                   <Route
                     path={paths.eventListeners.byName()}
                     exact
                     component={EventListener}
                   />
+
                   <Route
                     path={paths.triggerBindings.byName()}
                     exact
@@ -228,11 +219,7 @@ export /* istanbul ignore next */ class App extends Component {
                     exact
                     component={TriggerBindings}
                   />
-                  <Route
-                    path={paths.triggerBindings.byNamespace()}
-                    exact
-                    component={TriggerBindings}
-                  />
+
                   <Route
                     path={paths.triggerTemplates.byName()}
                     exact
@@ -244,11 +231,7 @@ export /* istanbul ignore next */ class App extends Component {
                     exact
                     component={TriggerTemplates}
                   />
-                  <Route
-                    path={paths.triggerTemplates.byNamespace()}
-                    exact
-                    component={TriggerTemplates}
-                  />
+
                   <Route
                     path={paths.extensions.all()}
                     exact

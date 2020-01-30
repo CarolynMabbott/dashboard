@@ -46,6 +46,7 @@ export default function Breadcrumbs({ labels, match }) {
 }
 
 const breadcrumbLabels = {
+  '/about': 'About',
   '/clustertasks': 'ClusterTasks',
   '/eventlisteners': 'EventListeners',
   '/extensions': 'Extensions',

@@ -722,3 +722,27 @@ it('deleteTaskRun', () => {
     fetchMock.restore();
   });
 });
+
+it('getDashboardVersion', () => {
+  const data = {
+    id: 'dashboardVersion',
+    dashboardVersion: '0.0.0'
+  };
+  fetchMock.get(/dashboardversion/, data);
+  return index.getDashboardVersion().then(dashboardVersion => {
+    expect(dashboardVersion).toEqual(data);
+    fetchMock.restore();
+  });
+});
+
+it('getPipelineVersion', () => {
+  const data = {
+    id: 'pipelineVersion',
+    pipelineVersion: '0.0.0'
+  };
+  fetchMock.get(/pipelineversion/, data);
+  return index.getPipelineVersion().then(pipelineVersion => {
+    expect(pipelineVersion).toEqual(data);
+    fetchMock.restore();
+  });
+});
