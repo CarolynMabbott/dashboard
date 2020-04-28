@@ -61,6 +61,8 @@ export function getNamespaces(state) {
 }
 
 export function getSelectedNamespace(state) {
+  console.log('state in namespaces.sj');
+  console.log(state);
   return state.selected;
 }
 

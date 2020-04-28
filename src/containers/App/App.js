@@ -77,6 +77,7 @@ import {
 import messages from '../../nls/messages_en.json';
 
 import '../../components/App/App.scss';
+import { CreateSecret } from '../CreateSecret/CreateSecret';
 
 export /* istanbul ignore next */ class App extends Component {
   componentDidMount() {
@@ -215,6 +216,11 @@ export /* istanbul ignore next */ class App extends Component {
                     path={paths.secrets.byNamespace()}
                     exact
                     component={Secrets}
+                  />
+                  <Route
+                    path={paths.secrets.create()}
+                    exact
+                    component={CreateSecret}
                   />
                   <Route
                     path={paths.serviceAccounts.byName()}

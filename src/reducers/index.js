@@ -313,6 +313,25 @@ export function getSecrets(
   });
 }
 
+export function getSecrets1(
+  state,
+  { namespace = getSelectedNamespace(state) } = {}
+) {
+  const allSecrets = secretSelectors.getSecrets(state.secrets, namespace);
+
+  return allSecrets; // .filter(secret => {
+  //   return filters.every(filter => {
+  //     const [filterKey, filterValue] = filter.split('=');
+  //     return (
+  //       secret.metadata.labels &&
+  //       filterKey &&
+  //       filterValue &&
+  //       secret.metadata.labels[filterKey] === filterValue
+  //     );
+  //   });
+  // });
+}
+
 export function getSecret(state, { name, namespace }) {
   return secretSelectors.getSecret(state.secrets, name, namespace);
 }

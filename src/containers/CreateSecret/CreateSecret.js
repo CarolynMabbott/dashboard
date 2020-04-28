@@ -18,10 +18,11 @@ import { connect } from 'react-redux';
 
 import Form from '../../components/CreateSecret/Form';
 import ServiceAccountSelector from '../../components/CreateSecret/ServiceAccountSelector';
-import { createSecret, patchSecret } from '../../actions/secrets';
+// import { createSecret, patchSecret } from '../../actions/secrets';
 import {
   getCreateSecretsSuccessMessage,
   getPatchSecretsErrorMessage,
+  getSecrets,
   getSecretsErrorMessage,
   getServiceAccounts,
   isFetchingSecrets,
@@ -31,6 +32,16 @@ import {
 import { fetchServiceAccounts } from '../../actions/serviceAccounts';
 import { selectNamespace } from '../../actions/namespaces';
 import '../../components/CreateSecret/CreateSecret.scss';
+// import { getSecrets } from '../../reducers/secrets';
+import {
+  createSecret,
+  fetchSecrets,
+  patchSecret
+  // clearNotification,
+  // deleteSecret,
+  // fetchSecrets
+  // resetCreateSecret
+} from '../../actions/secrets';
 
 const defaultGithubServerURL = 'https://github.com';
 const defaultDockerServerURL = 'https://index.docker.io/v1/';
@@ -81,13 +92,27 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
     };
   }
 
+  componentDidMount() {
+    this.fetchData();
+  }
+
   componentDidUpdate(prevProps) {
     const { succesfullyCreated } = this.props;
     const { succesfullyCreated: prevSuccesfullyCreated } = prevProps;
     if (succesfullyCreated && prevSuccesfullyCreated === false) {
-      this.props.fetchServiceAccounts();
+      // this.props.fetchServiceAccounts();
+      this.props.fetchData();
     }
   }
+
+  fetchData = () => {
+    const { filters, namespace } = this.props;
+    this.props.fetchSecrets({
+      filters,
+      namespace
+    });
+    this.props.fetchServiceAccounts();
+  };
 
   handleChangeNamespace = e => {
     const stateVar = 'namespace';
@@ -198,7 +223,10 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
   };
 
   handleSubmit = async namespace => {
-    this.props.selectNamespace(namespace);
+    console.log('namespace');
+    console.log(this.props);
+    console.log(namespace);
+    // this.props.selectNamespace(namespace);
     const invalidFields = {};
     let postData;
 
@@ -211,7 +239,16 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
       secretType
     } = this.state;
 
+    console.log('props');
+    console.log(this.props);
     const { secrets } = this.props;
+    console.log('done props');
+    // console.log(this.state);
+    // // const { secrets } = getSecrets(this.state, {});
+
+    // const namespace1 = 'default';
+    // const filters = [];
+    // const { secrets } = getSecrets(this.state, { filters, namespace1 });
 
     if (secretType === 'password') {
       postData = {
@@ -290,6 +327,8 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
     }
 
     if (Object.keys(invalidFields).length === 0) {
+      console.log('secret');
+      console.log(secrets);
       if (
         secrets.find(
           secret =>
@@ -331,11 +370,14 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
       loading,
       succesfullyCreated,
       errorMessageCreated,
+      secrets,
       serviceAccounts,
       errorMessagePatched
     } = this.props;
 
     const { name, namespace } = this.state;
+    console.log('secrets are:');
+    console.log(secrets);
 
     return (
       <div data-testid="createSecret">
@@ -353,6 +395,7 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
             handleRemove={this.handleRemoveAnnotation}
             errorMessageCreated={errorMessageCreated}
             removeDuplicateErrorMessage={this.removeDuplicateErrorMessage}
+            secrets={secrets}
           />
         )}
         {succesfullyCreated && (
@@ -372,6 +415,7 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
 }
 
 CreateSecret.defaultProps = {
+  secrets: [],
   open: false
 };
 
@@ -382,12 +426,15 @@ function mapStateToProps(state) {
     webSocketConnected: isWebSocketConnected(state),
     succesfullyCreated: getCreateSecretsSuccessMessage(state),
     loading: isFetchingSecrets(state) || isFetchingServiceAccounts(state),
-    serviceAccounts: getServiceAccounts(state)
+    serviceAccounts: getServiceAccounts(state),
+    // secrets: getSecrets()
+    secrets: getSecrets(state)
   };
 }
 
 const mapDispatchToProps = {
   createSecret,
+  fetchSecrets,
   fetchServiceAccounts,
   patchSecret,
   selectNamespace
