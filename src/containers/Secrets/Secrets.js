@@ -27,7 +27,7 @@ import { FormattedDate, Table } from '@tektoncd/dashboard-components';
 import { getErrorMessage, getFilters, urls } from '@tektoncd/dashboard-utils';
 import { Add16 as Add, Delete16 as Delete } from '@carbon/icons-react';
 import { LabelFilter } from '..';
-import CreateSecret from '../CreateSecret';
+// import CreateSecret from '../CreateSecret';
 import DeleteModal from '../../components/SecretsDeleteModal';
 import {
   clearNotification,
@@ -98,13 +98,20 @@ export /* istanbul ignore next */ class Secrets extends Component {
   };
 
   handleNewSecretClick = () => {
-    this.props.clearNotification();
-    this.props.resetCreateSecret();
-    this.setState(prevState => {
-      return {
-        openNewSecret: !prevState.openNewSecret
-      };
-    });
+    // this.props.clearNotification();
+    // this.props.resetCreateSecret();
+    // this.setState(prevState => {
+    return {
+      openNewSecret: (
+        <Link to={urls.secrets.create()} title={urls.secrets.create}>
+          {urls.secrets.create}
+        </Link>
+      )
+    };
+    // });
+    // <Link to={urls.secrets.create()} title={urls.secrets.create}>
+    //   {urls.secrets.create}
+    // </Link>;
   };
 
   handleSelectedType = type => {
@@ -477,13 +484,13 @@ export /* istanbul ignore next */ class Secrets extends Component {
             )}
           </>
         )}
-        {openNewSecret && (
+        {/* {openNewSecret && (
           <CreateSecret
             handleClose={this.handleCloseNewSecret}
             handleSelectedType={this.handleSelectedType}
             secrets={secrets}
           />
-        )}
+        )} */}
       </>
     );
   }

@@ -22,7 +22,7 @@ import ServiceAccountSelector from '../../components/CreateSecret/ServiceAccount
 import {
   getCreateSecretsSuccessMessage,
   getPatchSecretsErrorMessage,
-  getSecrets,
+  // getSecrets,
   getSecretsErrorMessage,
   getServiceAccounts,
   isFetchingSecrets,
@@ -101,17 +101,25 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
     const { succesfullyCreated: prevSuccesfullyCreated } = prevProps;
     if (succesfullyCreated && prevSuccesfullyCreated === false) {
       // this.props.fetchServiceAccounts();
+      console.log('not an else');
       this.props.fetchData();
+    } else {
+      console.log('else');
+      this.fetchData();
     }
   }
 
   fetchData = () => {
     const { filters, namespace } = this.props;
-    this.props.fetchSecrets({
+    console.log('fetchdates stuff is:');
+    console.log(this.props);
+    console.log(filters);
+    console.log(namespace);
+    fetchSecrets({
       filters,
       namespace
     });
-    this.props.fetchServiceAccounts();
+    fetchServiceAccounts();
   };
 
   handleChangeNamespace = e => {
@@ -209,6 +217,12 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
     });
   };
 
+  handleSelectedType = type => {
+    this.setState({
+      selectedType: type
+    });
+  };
+
   handleRemoveAnnotation = index => {
     this.setState(prevState => {
       const annotations = [...prevState.annotations];
@@ -226,7 +240,7 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
     console.log('namespace');
     console.log(this.props);
     console.log(namespace);
-    // this.props.selectNamespace(namespace);
+    selectNamespace(namespace);
     const invalidFields = {};
     let postData;
 
@@ -350,8 +364,8 @@ export /* istanbul ignore next */ class CreateSecret extends Component {
         this.setState({
           errorMessageDuplicate: null
         });
-        await this.props.createSecret(postData, namespace);
-        this.props.handleSelectedType(secretType);
+        await createSecret(postData, namespace);
+        this.handleSelectedType(secretType);
       }
     } else {
       this.setState({ invalidFields });
@@ -428,7 +442,8 @@ function mapStateToProps(state) {
     loading: isFetchingSecrets(state) || isFetchingServiceAccounts(state),
     serviceAccounts: getServiceAccounts(state),
     // secrets: getSecrets()
-    secrets: getSecrets(state)
+    // secrets: getSecrets(state)
+    secrets: fetchSecrets()
   };
 }
 
@@ -444,3 +459,28 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(injectIntl(CreateSecret));
+
+// const formattedSecret = {
+//   annotations,
+//   id: `${secret.metadata.namespace}:${secret.metadata.name}`,
+//   name: (
+//     <Link
+//       to={urls.secrets.byName({
+//         namespace: secret.metadata.namespace,
+//         secretName: secret.metadata.name
+//       })}
+//       title={secret.metadata.name}
+//     >
+//       {secret.metadata.name}
+//     </Link>
+//   ),
+//   namespace: secret.metadata.namespace,
+//   created: <FormattedDate date={secret.metadata.creationTimestamp} relative />,
+//   serviceAccounts: serviceAccountsString,
+//   type: secretTypeToDisplay,
+//   username: secretUsernameToDisplay
+// };
+
+// <Link to={urls.secrets.create()} title={urls.secrets.create}>
+//   {urls.secrets.create}
+// </Link>;
